@@ -1,7 +1,7 @@
 <?php
 
-use MiniLaravel\Routing\Route;
-use MiniLaravel\Http\Request;
+use Aksa\Routing\Route;
+use Aksa\Http\Request;
 
 // Simple route with closure
 Route::get('/', function(Request $request) {

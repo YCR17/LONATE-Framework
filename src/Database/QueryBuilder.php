@@ -1,6 +1,6 @@
 <?php
 
-namespace MiniLaravel\Database;
+namespace Aksa\Database;
 
 class QueryBuilder
 {

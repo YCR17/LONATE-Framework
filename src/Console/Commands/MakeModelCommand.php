@@ -1,8 +1,8 @@
 <?php
 
-namespace MiniLaravel\Console\Commands;
+namespace Aksa\Console\Commands;
 
-use MiniLaravel\Console\Command;
+use Aksa\Console\Command;
 
 class MakeModelCommand extends Command
 {
@@ -17,7 +17,7 @@ class MakeModelCommand extends Command
         }
 
         $className = $name;
-        $stub = "<?php\n\nnamespace App\\Models;\n\nuse MiniLaravel\\Database\\Model;\n\nclass {$className} extends Model\n{\n    protected \$fillable = [];\n}\n";
+        $stub = "<?php\n\nnamespace App\\Models;\n\nuse Aksa\\Database\\Model;\n\nclass {$className} extends Model\n{\n    protected \$fillable = [];\n}\n";
 
         $path = dirname(__DIR__, 5) . '/app/Models';
         if (!is_dir($path)) mkdir($path, 0755, true);

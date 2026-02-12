@@ -1,7 +1,7 @@
 <?php
 
-use MiniLaravel\Http\Response;
-use MiniLaravel\Support\Application;
+use Aksa\Http\Response;
+use Aksa\Support\Application;
 
 if (!function_exists('env')) {
     function env($key, $default = null)
@@ -159,11 +159,11 @@ if (!function_exists('http')) {
      * Return a shared HTTP client instance (fluent API similar to Laravel's Http facade)
      * Usage: http()->post(...), Http::post(...)
      */
-    function http(): \MiniLaravel\Http\Client
+    function http(): \Aksa\Http\Client
     {
         static $client = null;
         if ($client === null) {
-            $client = new \MiniLaravel\Http\Client();
+            $client = new \Aksa\Http\Client();
         }
         return $client;
     }

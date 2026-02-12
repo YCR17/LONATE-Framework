@@ -1,8 +1,8 @@
 {
-    "name": "minilaravel/framework",
+    "name": "ycr17/aksafw",
     "description": "A lightweight PHP MVC framework inspired by Laravel",
     "type": "project",
-    "bin": ["artisan"],
+    "bin": ["angkasa"],
     "require": {
         "php": "^7.4|^8.0"
     },
@@ -13,7 +13,7 @@
         ],
         "psr-4": {
             "App\\": "app/",
-            "MiniLaravel\\": "src/"
+            "Aksa\\": "src/"
         }
     },
     "scripts": {

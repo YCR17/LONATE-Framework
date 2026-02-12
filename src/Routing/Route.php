@@ -1,6 +1,6 @@
 <?php
 
-namespace MiniLaravel\Routing;
+namespace Aksa\Routing;
 
 class Route
 {

@@ -2,7 +2,7 @@
 
 namespace App\Http\Middleware;
 
-use MiniLaravel\Http\Request;
+use Aksa\Http\Request;
 
 class Authenticate
 {

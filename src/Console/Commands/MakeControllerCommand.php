@@ -1,8 +1,8 @@
 <?php
 
-namespace MiniLaravel\Console\Commands;
+namespace Aksa\Console\Commands;
 
-use MiniLaravel\Console\Command;
+use Aksa\Console\Command;
 
 class MakeControllerCommand extends Command
 {
@@ -17,7 +17,7 @@ class MakeControllerCommand extends Command
         }
 
         $className = $name;
-        $stub = "<?php\n\nnamespace App\\Http\\Controllers;\n\nuse MiniLaravel\\Http\\Controller;\n\nclass {$className} extends Controller\n{\n    public function index()\n    {\n        // TODO: implement\n    }\n}\n";
+        $stub = "<?php\n\nnamespace App\\Http\\Controllers;\n\nuse Aksa\\Http\\Controller;\n\nclass {$className} extends Controller\n{\n    public function index()\n    {\n        // TODO: implement\n    }\n}\n";
 
         $path = dirname(__DIR__, 5) . '/app/Http/Controllers';
         if (!is_dir($path)) mkdir($path, 0755, true);

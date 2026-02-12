@@ -1,8 +1,8 @@
 <?php
 
-namespace MiniLaravel\Console\Commands;
+namespace Aksa\Console\Commands;
 
-use MiniLaravel\Console\Command;
+use Aksa\Console\Command;
 
 class MakeMigrationCommand extends Command
 {
@@ -49,11 +49,11 @@ class MakeMigrationCommand extends Command
         }
 
         if ($isCreate && $tableName) {
-            $stub = "<?php\n\nuse MiniLaravel\\Database\\Schema;\nuse MiniLaravel\\Database\\Blueprint;\nuse MiniLaravel\\Database\\Migration;\n\nclass {$className} extends Migration\n{\n    public function up()\n    {\n        Schema::create('{$tableName}', function (Blueprint \$table) {\n            // \$table->increments('id');\n            // \$table->string('name');\n            // \$table->timestamps();\n        });\n    }\n\n    public function down()\n    {\n        Schema::dropIfExists('{$tableName}');\n    }\n}\n";
+            $stub = "<?php\n\nuse Aksa\\Database\\Schema;\nuse Aksa\\Database\\Blueprint;\nuse Aksa\\Database\\Migration;\n\nclass {$className} extends Migration\n{\n    public function up()\n    {\n        Schema::create('{$tableName}', function (Blueprint \$table) {\n            // \$table->increments('id');\n            // \$table->string('name');\n            // \$table->timestamps();\n        });\n    }\n\n    public function down()\n    {\n        Schema::dropIfExists('{$tableName}');\n    }\n}\n";
         } elseif ($tableName) {
-            $stub = "<?php\n\nuse MiniLaravel\\Database\\Schema;\nuse MiniLaravel\\Database\\Blueprint;\nuse MiniLaravel\\Database\\Migration;\n\nclass {$className} extends Migration\n{\n    public function up()\n    {\n        Schema::table('{$tableName}', function (Blueprint \$table) {\n            // \$table->string('new_column');\n        });\n    }\n\n    public function down()\n    {\n        Schema::table('{$tableName}', function (Blueprint \$table) {\n            // \$table->dropColumn('new_column');\n        });\n    }\n}\n";
+            $stub = "<?php\n\nuse Aksa\\Database\\Schema;\nuse Aksa\\Database\\Blueprint;\nuse Aksa\\Database\\Migration;\n\nclass {$className} extends Migration\n{\n    public function up()\n    {\n        Schema::table('{$tableName}', function (Blueprint \$table) {\n            // \$table->string('new_column');\n        });\n    }\n\n    public function down()\n    {\n        Schema::table('{$tableName}', function (Blueprint \$table) {\n            // \$table->dropColumn('new_column');\n        });\n    }\n}\n";
         } else {
-            $stub = "<?php\n\nuse MiniLaravel\\Database\\Migration;\n\nclass {$className} extends Migration\n{\n    public function up()\n    {\n        // TODO: implement migration\n    }\n\n    public function down()\n    {\n        // TODO: implement rollback\n    }\n}\n";
+            $stub = "<?php\n\nuse Aksa\\Database\\Migration;\n\nclass {$className} extends Migration\n{\n    public function up()\n    {\n        // TODO: implement migration\n    }\n\n    public function down()\n    {\n        // TODO: implement rollback\n    }\n}\n";
         }
 
         $path = dirname(__DIR__, 4) . '/database/migrations';

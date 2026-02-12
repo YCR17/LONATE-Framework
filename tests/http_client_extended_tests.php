@@ -1,7 +1,7 @@
 <?php
 
-use MiniLaravel\Http\Client;
-use MiniLaravel\Http\Response as HttpResponse;
+use Aksa\Http\Client;
+use Aksa\Http\Response as HttpResponse;
 
 // Extended tests for HTTP client features: retry, throw, response helpers
 $ok = true;

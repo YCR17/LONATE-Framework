@@ -1,8 +1,8 @@
 <?php
 
-namespace MiniLaravel\Console\Commands;
+namespace Aksa\Console\Commands;
 
-use MiniLaravel\Console\Command;
+use Aksa\Console\Command;
 
 class MakeSeederCommand extends Command
 {
@@ -17,7 +17,7 @@ class MakeSeederCommand extends Command
         }
 
         $className = $name;
-        $stub = "<?php\n\nuse MiniLaravel\\Database\\Seeder;\nuse MiniLaravel\\Database\\DB;\n\nclass {$className} extends Seeder\n{\n    public function run()\n    {\n        // Example: DB::table('users')->insert([\n        //     ['name' => 'Admin', 'email' => 'admin@example.com', 'password' => password_hash('password', PASSWORD_DEFAULT)],\n        // ]);\n    }\n}\n";
+        $stub = "<?php\n\nuse Aksa\\Database\\Seeder;\nuse Aksa\\Database\\DB;\n\nclass {$className} extends Seeder\n{\n    public function run()\n    {\n        // Example: DB::table('users')->insert([\n        //     ['name' => 'Admin', 'email' => 'admin@example.com', 'password' => password_hash('password', PASSWORD_DEFAULT)],\n        // ]);\n    }\n}\n";
 
         $path = dirname(__DIR__, 4) . '/database/seeders';
         if (!is_dir($path)) mkdir($path, 0755, true);

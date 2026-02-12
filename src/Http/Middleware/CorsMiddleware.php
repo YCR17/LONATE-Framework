@@ -1,8 +1,8 @@
 <?php
 
-namespace MiniLaravel\Http\Middleware;
+namespace Aksa\Http\Middleware;
 
-use MiniLaravel\Http\Request;
+use Aksa\Http\Request;
 
 class CorsMiddleware
 {

@@ -1,6 +1,6 @@
 <?php
 
-namespace MiniLaravel\Http;
+namespace Aksa\Http;
 
 abstract class Controller
 {

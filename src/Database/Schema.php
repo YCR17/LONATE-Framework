@@ -1,9 +1,9 @@
 <?php
 
-namespace MiniLaravel\Database;
+namespace Aksa\Database;
 
-use MiniLaravel\Database\DatabaseManager;
-use MiniLaravel\Database\Blueprint;
+use Aksa\Database\DatabaseManager;
+use Aksa\Database\Blueprint;
 
 class Schema
 {

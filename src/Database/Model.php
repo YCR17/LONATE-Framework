@@ -1,9 +1,9 @@
 <?php
 
-namespace MiniLaravel\Database;
+namespace Aksa\Database;
 
-use MiniLaravel\Database\DatabaseManager;
-use MiniLaravel\Database\QueryBuilder;
+use Aksa\Database\DatabaseManager;
+use Aksa\Database\QueryBuilder;
 
 abstract class Model
 {

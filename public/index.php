@@ -12,4 +12,4 @@ require __DIR__.'/../vendor/autoload.php';
 
 // Bootstrap the application and handle the request...
 (require_once __DIR__.'/../bootstrap/app.php')
-    ->handleRequest(\MiniLaravel\Http\Request::capture());
+    ->handleRequest(\Aksa\Http\Request::capture());

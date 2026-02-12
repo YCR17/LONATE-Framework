@@ -1,10 +1,10 @@
 <?php
 
-namespace MiniLaravel\Routing;
+namespace Aksa\Routing;
 
 use Closure;
-use MiniLaravel\Http\Request;
-use MiniLaravel\Http\Response;
+use Aksa\Http\Request;
+use Aksa\Http\Response;
 
 class Router
 {

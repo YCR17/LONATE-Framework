@@ -1,11 +1,11 @@
-# MiniLaravel Framework
+# Aksa Framework
 
 Framework MVC PHP yang ringan dan powerful, terinspirasi dari Laravel dengan fokus pada kesederhanaan dan performa tinggi.
 
 ## ✨ Fitur
 
 - 🚀 **Routing** - Sistem routing yang simple dan powerful seperti Laravel
-- 🎨 **Blade-like Template Engine** - Sintaks template yang familiar dan mudah digunakan
+- 🎨 **Aksa template engine (.aksa.php)** - Sintaks template yang familiar dan mudah digunakan
 - 💾 **Eloquent-like ORM** - Query builder dan model dengan sintaks yang elegan
 - 🔧 **MVC Pattern** - Struktur kode yang terorganisir dengan baik
 - 🛡️ **Middleware Support** - Sistem middleware untuk filtering HTTP requests
@@ -38,7 +38,7 @@ cp .env.example .env
 ```
 DB_DRIVER=mysql
 DB_HOST=localhost
-DB_DATABASE=minilaravel
+DB_DATABASE=aksa
 DB_USERNAME=root
 DB_PASSWORD=
 ```
@@ -64,7 +64,7 @@ php angkasa serve --host=0.0.0.0 --port=8080
 ## 📁 Struktur Folder
 
 ```
-minilaravel/
+aksa/
 ├── app/
 │   ├── Controllers/       # Controllers
 │   ├── Models/           # Models (Eloquent-like)
@@ -77,7 +77,7 @@ minilaravel/
 │   ├── index.php        # Entry point
 │   └── .htaccess        # Apache rewrite rules
 ├── resources/
-│   └── views/           # Blade-like views
+│   └── views/           # Aksa views (.aksa.php)
 ├── routes/
 │   └── web.php          # Route definitions
 ├── src/                 # Framework core

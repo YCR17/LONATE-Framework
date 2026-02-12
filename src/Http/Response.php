@@ -1,6 +1,6 @@
 <?php
 
-namespace MiniLaravel\Http;
+namespace Aksa\Http;
 
 class Response
 {
@@ -105,7 +105,7 @@ class Response
     
     public static function view($view, $data = [], $statusCode = 200)
     {
-        $viewEngine = new \MiniLaravel\View\ViewEngine();
+        $viewEngine = new \Aksa\View\ViewEngine();
         $content = $viewEngine->render($view, $data);
         
         return new static($content, $statusCode);

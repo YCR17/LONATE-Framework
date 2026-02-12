@@ -1,8 +1,8 @@
 <?php
 
-namespace MiniLaravel\Database\Migrations;
+namespace Aksa\Database\Migrations;
 
-use MiniLaravel\Database\DatabaseManager;
+use Aksa\Database\DatabaseManager;
 
 class Migrator
 {
@@ -17,7 +17,7 @@ class Migrator
         $this->ensureMigrationsTable();
 
         // Ensure Schema uses same connection
-        \MiniLaravel\Database\Schema::setConnection($this->db->getConnection());
+        \Aksa\Database\Schema::setConnection($this->db->getConnection());
     }
 
     protected function ensureMigrationsTable()

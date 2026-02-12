@@ -1,9 +1,9 @@
 <?php
 
 // Simple global aliases to mimic Laravel facades
-class DB extends \MiniLaravel\Database\DB {}
-class Schema extends \MiniLaravel\Database\Schema {}
-class Seeder extends \MiniLaravel\Database\Seeder {}
-class Blueprint extends \MiniLaravel\Database\Blueprint {}
-class Migration extends \MiniLaravel\Database\Migration {}
-class Http extends \MiniLaravel\Http\Client {}
+class DB extends \Aksa\Database\DB {}
+class Schema extends \Aksa\Database\Schema {}
+class Seeder extends \Aksa\Database\Seeder {}
+class Blueprint extends \Aksa\Database\Blueprint {}
+class Migration extends \Aksa\Database\Migration {}
+class Http extends \Aksa\Http\Client {}

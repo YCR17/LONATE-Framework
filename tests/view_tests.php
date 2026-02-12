@@ -1,12 +1,12 @@
 <?php
 
-use MiniLaravel\View\ViewEngine;
-use MiniLaravel\Http\Request;
+use Aksa\View\ViewEngine;
+use Aksa\Http\Request;
 
 // Test 1: sections / yield
 $engine = new ViewEngine();
 $html = $engine->render('welcome', []);
-if (strpos($html, '<h1>🚀 MiniLaravel</h1>') === false) {
+if (strpos($html, 'Aksa') === false) {
     echo "welcome content not found\n";
     return false;
 }

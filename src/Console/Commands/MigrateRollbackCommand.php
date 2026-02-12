@@ -1,9 +1,9 @@
 <?php
 
-namespace MiniLaravel\Console\Commands;
+namespace Aksa\Console\Commands;
 
-use MiniLaravel\Console\Command;
-use MiniLaravel\Database\Migrations\Migrator;
+use Aksa\Console\Command;
+use Aksa\Database\Migrations\Migrator;
 
 class MigrateRollbackCommand extends Command
 {

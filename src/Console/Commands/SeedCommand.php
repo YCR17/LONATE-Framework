@@ -1,8 +1,8 @@
 <?php
 
-namespace MiniLaravel\Console\Commands;
+namespace Aksa\Console\Commands;
 
-use MiniLaravel\Console\Command;
+use Aksa\Console\Command;
 
 class SeedCommand extends Command
 {

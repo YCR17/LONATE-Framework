@@ -1,9 +1,9 @@
 <?php
 
-namespace MiniLaravel\Http\Middleware;
+namespace Aksa\Http\Middleware;
 
-use MiniLaravel\Http\Request;
-use MiniLaravel\Http\Response;
+use Aksa\Http\Request;
+use Aksa\Http\Response;
 
 class VerifyCsrfToken
 {

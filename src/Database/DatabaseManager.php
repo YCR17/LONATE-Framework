@@ -1,6 +1,6 @@
 <?php
 
-namespace MiniLaravel\Database;
+namespace Aksa\Database;
 
 class DatabaseManager
 {
@@ -25,7 +25,7 @@ class DatabaseManager
             $this->config = [
                 'driver' => 'mysql',
                 'host' => 'localhost',
-                'database' => 'minilaravel',
+                'database' => 'aksa',
                 'username' => 'root',
                 'password' => '',
                 'charset' => 'utf8mb4',

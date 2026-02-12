@@ -1,11 +1,11 @@
 <?php
 
-namespace MiniLaravel\Support;
+namespace Aksa\Support;
 
-use MiniLaravel\Routing\Router;
-use MiniLaravel\Http\Request;
-use MiniLaravel\Http\Response;
-use MiniLaravel\Database\DatabaseManager;
+use Aksa\Routing\Router;
+use Aksa\Http\Request;
+use Aksa\Http\Response;
+use Aksa\Database\DatabaseManager;
 
 class Application
 {
@@ -221,9 +221,9 @@ class Application
      * Handle an incoming HTTP request.
      * This method bootstraps route files and dispatches the request via Router.
      */
-    public function handleRequest(\MiniLaravel\Http\Request $request)
+    public function handleRequest(\Aksa\Http\Request $request)
     {
-        $router = new \MiniLaravel\Routing\Router();
+        $router = new \Aksa\Routing\Router();
 
         // register middleware aliases/groups stored via withMiddleware
         foreach ($this->middlewareAliases as $alias => $class) {
@@ -244,8 +244,8 @@ class Application
 
         // default aliases if none provided - prefer internal middleware, fall back to app-provided shims
         if (!isset($this->middlewareAliases['cors'])) {
-            if (class_exists('\MiniLaravel\\Http\\Middleware\\CorsMiddleware')) {
-                $router->registerMiddlewareAlias('cors', \MiniLaravel\Http\Middleware\CorsMiddleware::class);
+            if (class_exists('\Aksa\\Http\\Middleware\\CorsMiddleware')) {
+                $router->registerMiddlewareAlias('cors', \Aksa\Http\Middleware\CorsMiddleware::class);
             } elseif (class_exists('\App\\Middleware\\CorsMiddleware')) {
                 $router->registerMiddlewareAlias('cors', \App\Middleware\CorsMiddleware::class);
             } elseif (class_exists('\App\\Http\\Middleware\\CorsMiddleware')) {
@@ -254,8 +254,8 @@ class Application
         }
 
         if (!isset($this->middlewareAliases['auth'])) {
-            if (class_exists('\MiniLaravel\\Http\\Middleware\\Authenticate')) {
-                $router->registerMiddlewareAlias('auth', \MiniLaravel\Http\Middleware\Authenticate::class);
+            if (class_exists('\Aksa\\Http\\Middleware\\Authenticate')) {
+                $router->registerMiddlewareAlias('auth', \Aksa\Http\Middleware\Authenticate::class);
             } elseif (class_exists('\App\\Http\\Middleware\\Authenticate')) {
                 $router->registerMiddlewareAlias('auth', \App\Http\Middleware\Authenticate::class);
             } elseif (class_exists('\App\\Middleware\\AuthMiddleware')) {
@@ -265,31 +265,31 @@ class Application
 
         // register new middleware aliases for web/api behavior (prefer internal)
         if (!isset($this->middlewareAliases['session'])) {
-            if (class_exists('\MiniLaravel\\Http\\Middleware\\StartSession')) {
-                $router->registerMiddlewareAlias('session', \MiniLaravel\Http\Middleware\StartSession::class);
+            if (class_exists('\Aksa\\Http\\Middleware\\StartSession')) {
+                $router->registerMiddlewareAlias('session', \Aksa\Http\Middleware\StartSession::class);
             } elseif (class_exists('\App\\Http\\Middleware\\StartSession')) {
                 $router->registerMiddlewareAlias('session', \App\Http\Middleware\StartSession::class);
             }
         }
 
         if (!isset($this->middlewareAliases['csrf'])) {
-            if (class_exists('\MiniLaravel\\Http\\Middleware\\VerifyCsrfToken')) {
-                $router->registerMiddlewareAlias('csrf', \MiniLaravel\Http\Middleware\VerifyCsrfToken::class);
+            if (class_exists('\Aksa\\Http\\Middleware\\VerifyCsrfToken')) {
+                $router->registerMiddlewareAlias('csrf', \Aksa\Http\Middleware\VerifyCsrfToken::class);
             } elseif (class_exists('\App\\Http\\Middleware\\VerifyCsrfToken')) {
                 $router->registerMiddlewareAlias('csrf', \App\Http\Middleware\VerifyCsrfToken::class);
             }
         }
 
         if (!isset($this->middlewareAliases['throttle'])) {
-            if (class_exists('\MiniLaravel\\Http\\Middleware\\ThrottleRequests')) {
-                $router->registerMiddlewareAlias('throttle', \MiniLaravel\Http\Middleware\ThrottleRequests::class);
+            if (class_exists('\Aksa\\Http\\Middleware\\ThrottleRequests')) {
+                $router->registerMiddlewareAlias('throttle', \Aksa\Http\Middleware\ThrottleRequests::class);
             } elseif (class_exists('\App\\Http\\Middleware\\ThrottleRequests')) {
                 $router->registerMiddlewareAlias('throttle', \App\Http\Middleware\ThrottleRequests::class);
             }
         }
 
         // set router facade
-        \MiniLaravel\Routing\Route::setRouter($router);
+        \Aksa\Routing\Route::setRouter($router);
 
         $base = $this->basePath();
 
@@ -330,7 +330,7 @@ class Application
         try {
             $response = $router->dispatch($request);
 
-            if ($response instanceof \MiniLaravel\Http\Response) {
+            if ($response instanceof \Aksa\Http\Response) {
                 $response->send();
             } else {
                 echo $response;
@@ -344,7 +344,7 @@ class Application
                 $handler->report($e);
                 $result = $handler->render($request, $e);
 
-                if ($result instanceof \MiniLaravel\Http\Response) {
+                if ($result instanceof \Aksa\Http\Response) {
                     $result->send();
                 } else {
                     echo $result;

@@ -5,7 +5,7 @@ require __DIR__ . '/vendor/autoload.php';
 
 $app = require __DIR__ . '/bootstrap/app.php';
 
-use MiniLaravel\Console\Kernel;
+use Aksa\Console\Kernel;
 
 $kernel = new Kernel($app);
 $kernel->handle($argv);

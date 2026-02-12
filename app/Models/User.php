@@ -2,7 +2,7 @@
 
 namespace App\Models;
 
-use MiniLaravel\Database\Model;
+use Aksa\Database\Model;
 
 class User extends Model
 {

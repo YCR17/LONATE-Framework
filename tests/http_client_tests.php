@@ -1,7 +1,7 @@
 <?php
 
-use MiniLaravel\Http\Client;
-use MiniLaravel\Http\Response as HttpResponse;
+use Aksa\Http\Client;
+use Aksa\Http\Response as HttpResponse;
 
 // Simple unit tests for HTTP client facade/helper (no external network calls)
 

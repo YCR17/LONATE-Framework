@@ -1,6 +1,6 @@
 <?php
 
-namespace MiniLaravel\Support;
+namespace Aksa\Support;
 
 class MiddlewareRegistrar
 {

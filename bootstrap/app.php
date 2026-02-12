@@ -1,8 +1,8 @@
 <?php
 
-use MiniLaravel\Support\Application;
-use MiniLaravel\Support\MiddlewareRegistrar;
-use MiniLaravel\Support\ExceptionsConfigurator;
+use Aksa\Support\Application;
+use Aksa\Support\MiddlewareRegistrar;
+use Aksa\Support\ExceptionsConfigurator;
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(

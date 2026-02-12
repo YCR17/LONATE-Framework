@@ -1,6 +1,6 @@
 <?php
 
-namespace MiniLaravel\View;
+namespace Aksa\View;
 
 class ViewEngine
 {
@@ -24,7 +24,7 @@ class ViewEngine
     
     public function render($view, $data = [])
     {
-        $viewFile = $this->viewPath . '/' . str_replace('.', '/', $view) . '.blade.php';
+        $viewFile = $this->viewPath . '/' . str_replace('.', '/', $view) . '.aksa.php';
         
         if (!file_exists($viewFile)) {
             throw new \Exception("View {$view} not found");
@@ -137,7 +137,7 @@ class ViewEngine
         $content = preg_replace('/@endphp/', '?>', $content);
         
         // @include
-        $content = preg_replace('/@include\([\'"](.+)[\'"]\)/', '<?php echo (new \\MiniLaravel\\View\\ViewEngine())->render("$1", get_defined_vars()); ?>', $content);
+        $content = preg_replace('/@include\([\'"](.+)[\'"]\)/', '<?php echo (new \\Aksa\\View\\ViewEngine())->render("$1", get_defined_vars()); ?>', $content);
                 // @csrf -> echo CSRF hidden input
         $content = preg_replace('/@csrf/', '<?php echo csrf_field(); ?>', $content);
 
@@ -145,7 +145,7 @@ class ViewEngine
         $content = preg_replace('/@method\([\'\"](.+)[\'\"]\)/', '<?php echo "<input type=\"hidden\" name=\"_method\" value=\"$1\">"; ?>', $content);
         return $content;
     }
-    // Blade-like section handling
+    // Aksa-style section handling (compatible with previous Blade-like directives)
     public function extend($view)
     {
         $this->parent = $view;

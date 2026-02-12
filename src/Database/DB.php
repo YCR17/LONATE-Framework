@@ -1,8 +1,8 @@
 <?php
 
-namespace MiniLaravel\Database;
+namespace Aksa\Database;
 
-use MiniLaravel\Database\DatabaseManager;
+use Aksa\Database\DatabaseManager;
 
 class DB
 {

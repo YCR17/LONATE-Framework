@@ -1,6 +1,6 @@
 <?php
 
-namespace MiniLaravel\Console;
+namespace Aksa\Console;
 
 abstract class Command
 {

@@ -1,7 +1,7 @@
 <?php
 
-use MiniLaravel\Database\Seeder;
-use MiniLaravel\Database\DB;
+use Aksa\Database\Seeder;
+use Aksa\Database\DB;
 
 class UserSeeder extends Seeder
 {

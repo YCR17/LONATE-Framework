@@ -3,7 +3,7 @@
 return [
     'driver' => env('DB_DRIVER', 'mysql'),
     'host' => env('DB_HOST', 'localhost'),
-    'database' => env('DB_DATABASE', 'minilaravel'),
+    'database' => env('DB_DATABASE', 'aksa'),
     'username' => env('DB_USERNAME', 'root'),
     'password' => env('DB_PASSWORD', ''),
     'charset' => 'utf8mb4',

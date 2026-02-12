@@ -1,8 +1,8 @@
 <?php
 
-use MiniLaravel\Database\Schema;
-use MiniLaravel\Database\Blueprint;
-use MiniLaravel\Database\Migration;
+use Aksa\Database\Schema;
+use Aksa\Database\Blueprint;
+use Aksa\Database\Migration;
 
 class CreateUsersTable extends Migration
 {

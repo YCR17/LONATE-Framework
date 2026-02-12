@@ -1,8 +1,8 @@
 <?php
 
-namespace MiniLaravel\Console;
+namespace Aksa\Console;
 
-use MiniLaravel\Support\Application;
+use Aksa\Support\Application;
 
 class Kernel
 {
