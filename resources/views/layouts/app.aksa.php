@@ -70,7 +70,7 @@
     <div class="app">
         <header>
             <div class="brand">
-                <div class="logo">ML</div>
+                <div class="logo">AFW</div>
                 <div>
                     <h1>Aksa</h1>
                     <p class="lead">A small, modern PHP MVC framework</p>
