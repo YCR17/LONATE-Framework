@@ -1,0 +1,53 @@
+# Operating system
+.DS_Store
+Thumbs.db
+
+# IDEs / editors
+/.idea/
+/.vscode/
+*.sublime-workspace
+*.sublime-project
+
+# Composer
+/vendor/
+/composer.phar
+
+# Node / frontend
+/node_modules/
+/npm-debug.log*
+/yarn-error.log
+
+# Environment files
+.env
+.env.*
+
+# Application logs & cache
+/storage/logs/
+/storage/framework/
+/storage/cache/
+/storage/debugbar/
+/storage/*.log
+
+# Public generated files
+/public/storage
+/public/hot
+
+# PHPUnit / test results
+.phpunit.result.cache
+/.phpunit.result.cache
+
+# Build / cache
+/build/
+/.cache/
+
+# Generated view cache
+/storage/cache/views/
+
+# Misc
+coverage/
+*.sqlite
+*.sqlite3
+
+# Ignore local config overrides
+.env.local
+.env.testing
