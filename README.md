@@ -50,14 +50,14 @@ DB_PASSWORD=
 
 ### Menjalankan server pengembangan
 
-Gunakan perintah artisan `serve` untuk menjalankan built-in PHP server (mirip Laravel):
+Gunakan perintah angkasa `serve` untuk menjalankan built-in PHP server (mirip Laravel):
 
 ```bash
 # default: http://127.0.0.1:8000
-php artisan serve
+php angkasa serve
 
 # custom host/port
-php artisan serve --host=0.0.0.0 --port=8080
+php angkasa serve --host=0.0.0.0 --port=8080
 ```
 
 
