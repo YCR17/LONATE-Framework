@@ -2,31 +2,19 @@
 
 namespace App\Models;
 
-use Aksa\Database\Model;
+use Lonate\Core\Database\Model;
 
 class User extends Model
 {
-    // Table name (optional, defaults to 'users')
-    protected $table = 'users';
+    protected ?string $table = 'users';
     
-    // Primary key (optional, defaults to 'id')
-    protected $primaryKey = 'id';
+    protected string $primaryKey = 'id';
     
-    // Mass assignable attributes
-    protected $fillable = [
+    protected array $fillable = [
         'name',
         'email',
-        'password'
+        'password',
     ];
     
-    // Attributes that should be hidden
-    protected $guarded = [];
-    
-    
-    // Example relationship (if you want to add relations later)
-    // public function role()
-    // {
-    //     // This would require implementing relationships
-    //     // For now, just a placeholder
-    // }
+    protected array $guarded = [];
 }

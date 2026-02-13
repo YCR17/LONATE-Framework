@@ -1,0 +1,13 @@
+#!/usr/bin/env php
+<?php
+
+use Lonate\Core\Console\Kernel;
+
+// 1. Bootstrap
+$app = require __DIR__ . '/bootstrap/app.php';
+
+// 2. Handle Console Command
+$kernel = $app->make(Kernel::class);
+$status = $kernel->handle($_SERVER['argv']);
+
+exit($status);

@@ -1,15 +1,17 @@
 <?php
 
-define('LARAVEL_START', microtime(true));
+use Lonate\Core\Http\Kernel;
+use Lonate\Core\Http\Request;
 
-// Determine if the application is in maintenance mode...
-if (file_exists($maintenance = __DIR__.'/../storage/framework/maintenance.php')) {
-    require $maintenance;
-}
+// 1. Bootstrap
+$app = require __DIR__ . '/../bootstrap/app.php';
 
-// Register the Composer autoloader...
-require __DIR__.'/../vendor/autoload.php';
+// 2. Capture Request
+$request = Request::capture();
 
-// Bootstrap the application and handle the request...
-(require_once __DIR__.'/../bootstrap/app.php')
-    ->handleRequest(\Aksa\Http\Request::capture());
+// 3. Handle Request
+$kernel = $app->make(Kernel::class);
+$response = $kernel->handle($request);
+
+// 4. Send Response
+$response->send();

@@ -1,21 +1,30 @@
 <?php
 
-use Aksa\Support\Application;
-use Aksa\Support\MiddlewareRegistrar;
-use Aksa\Support\ExceptionsConfigurator;
+use Lonate\Core\Foundation\Application;
+use Lonate\Core\Http\Kernel;
+use Lonate\Core\Http\Router;
 
-return Application::configure(basePath: dirname(__DIR__))
-    ->withRouting(
-        web: __DIR__.'/../routes/web.php',
-        commands: __DIR__.'/../routes/console.php',
-        api: __DIR__.'/../routes/api.php',
-        health: '/up',
-    )
-    ->withMiddleware(function (MiddlewareRegistrar $middleware) {
-        // Register default middleware aliases or groups here if you want
-        // $middleware->alias('auth', App\Http\Middleware\Authenticate::class);
-    })
-    ->withExceptions(function (ExceptionsConfigurator $exceptions) {
-        // Configure exception handler if desired
-        $exceptions->handler(App\Exceptions\Handler::class);
-    })->create();
+require __DIR__ . '/../vendor/autoload.php';
+
+// 1. Load Environment Variables
+$dotenv = \Lonate\Core\Support\DotEnv::create(dirname(__DIR__) . '/.env');
+$dotenv->load();
+
+// 2. Create Application
+$app = new Application(dirname(__DIR__));
+
+// 3. Register Configured Providers (Core + App)
+// This replaces manual singleton registration
+$app->registerConfiguredProviders();
+
+// 4. Register Static Facades (Legacy-ish but useful)
+\Lonate\Core\Support\Facade::setFacadeApplication($app);
+
+// 5. Boot Providers
+$app->boot();
+
+// 6. Exposed to Global (for helpers)
+$GLOBALS['app'] = $app;
+
+// 7. Return App
+return $app;

@@ -2,30 +2,39 @@
 
 namespace App\Exceptions;
 
-use Aksa\Http\Request;
-use Aksa\Http\Response;
+use Lonate\Core\Http\Request;
+use Lonate\Core\Http\Response;
 
 class Handler
 {
-    public function report(\Throwable $e)
+    public function report(\Throwable $e): void
     {
-        // Simple reporting to error log for now
         error_log((string) $e);
     }
 
-    public function render(Request $request, \Throwable $e)
+    public function render(Request $request, \Throwable $e): Response
     {
-        if ($request->ajax() || strpos($request->header('Accept') ?? '', 'application/json') !== false) {
-            http_response_code(500);
-            header('Content-Type: application/json');
-            return json_encode(['error' => $e->getMessage()]);
+        $debug = config('app.debug', false);
+
+        if ($request->expectsJson()) {
+            return Response::json([
+                'error' => $e->getMessage(),
+            ], 500);
         }
 
-        http_response_code(500);
-        return "<h1>Server Error</h1><p>" . htmlentities($e->getMessage()) . "</p>";
+        if ($debug) {
+            $content = "<h1>Whoops!</h1>";
+            $content .= "<p>" . htmlentities($e->getMessage()) . "</p>";
+            $content .= "<pre>" . htmlentities($e->getTraceAsString()) . "</pre>";
+        } else {
+            $content = "<h1>500 Server Error</h1>";
+            $content .= "<p>Something went wrong.</p>";
+        }
+
+        return new Response($content, 500);
     }
 
-    public function renderForConsole(\Throwable $e)
+    public function renderForConsole(\Throwable $e): void
     {
         echo "Error: " . $e->getMessage() . "\n";
     }

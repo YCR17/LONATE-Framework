@@ -1,9 +1,16 @@
 <?php
 
-use Aksa\Routing\Route;
-use Aksa\Http\Request;
+/**
+ * API Routes
+ * 
+ * Define your application's API routes here.
+ * The $router variable is available and is an instance of Router.
+ */
 
-Route::get('/api/health', function(Request $request) {
-    return json(['status' => 'ok']);
+$router->get('api/status', function ($request) {
+    return \Lonate\Core\Http\Response::json([
+        'status' => 'ok',
+        'framework' => 'LONATE',
+        'version' => \Lonate\Core\Foundation\Application::VERSION,
+    ]);
 });
-

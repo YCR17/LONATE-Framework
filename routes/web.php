@@ -1,12 +1,14 @@
 <?php
 
-use Aksa\Routing\Route;
-use Aksa\Http\Request;
+/**
+ * Web Routes
+ * 
+ * Define your application's web routes here.
+ * The $router variable is available and is an instance of Router.
+ */
 
-// Simple route with closure
-Route::get('/', function(Request $request) {
+$router->get('/', function ($request) {
     return view('welcome');
 });
 
-// Route with controller (string "Controller@method")
-Route::get('/apis', 'UserController@sendToExternal');
+$router->get('/test', [\App\Http\Controllers\MyController::class, 'index']);

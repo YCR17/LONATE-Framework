@@ -5,7 +5,7 @@ require __DIR__ . '/vendor/autoload.php';
 
 $app = require __DIR__ . '/bootstrap/app.php';
 
-use Aksa\Console\Kernel;
+use Lonate\Core\Console\Kernel;
 
 $kernel = new Kernel($app);
 $kernel->handle($argv);

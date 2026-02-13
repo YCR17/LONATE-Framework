@@ -1,15 +1,14 @@
 <?php
 
-use Aksa\Database\Schema;
-use Aksa\Database\Blueprint;
-use Aksa\Database\Migration;
+use Lonate\Core\Database\Schema\Schema;
+use Lonate\Core\Database\Schema\Blueprint;
 
-class CreateUsersTable extends Migration
+class CreateUsersTable
 {
     public function up()
     {
         Schema::create('users', function (Blueprint $table) {
-            $table->increments('id');
+            $table->id();
             $table->string('name', 100);
             $table->string('email', 150);
             $table->string('password', 255);
