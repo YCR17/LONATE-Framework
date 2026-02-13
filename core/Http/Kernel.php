@@ -75,7 +75,12 @@ class Kernel
     protected function buildMiddlewareStack(): \Closure
     {
         $coreAction = function ($request) {
-            return $this->router->dispatch($request);
+            $result = $this->router->dispatch($request);
+            // Ensure middleware always receives a Response object
+            if (!$result instanceof Response) {
+                return new Response((string)$result);
+            }
+            return $result;
         };
         
         // Wrap core action in middleware onion

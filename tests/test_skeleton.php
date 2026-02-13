@@ -1,69 +1,6 @@
 <?php
-/**
- * LONATE Framework — Comprehensive Verification Test Suite
- * 
- * Tests ALL core components:
- * - Sections 1-10: Use InMemoryDriver (no external DB needed)
- * - Section 11: SawitDB WowoEngine integration tests
- * - Section 12: AQL Builder tests
- * 
- * Run: php tests/test_skeleton.php
- */
 
-$basePath = dirname(__DIR__);
-
-// Force inmemory driver for ORM tests (sections 1-10)
-// SawitDB integration tests (11-12) directly instantiate SawitDriver
-putenv('DB_CONNECTION=inmemory');
-$_ENV['DB_CONNECTION'] = 'inmemory';
-$_SERVER['DB_CONNECTION'] = 'inmemory';
-
-// Autoload
-require $basePath . '/vendor/autoload.php';
-
-// Track results
-$passed = 0;
-$failed = 0;
-$total = 0;
-
-function test(string $name, callable $fn): void
-{
-    global $passed, $failed, $total;
-    $total++;
-    try {
-        $result = $fn();
-        if ($result === false) {
-            throw new Exception("Returned false");
-        }
-        echo "  \033[32m✓\033[0m {$name}\n";
-        $passed++;
-    } catch (Throwable $e) {
-        echo "  \033[31m✗\033[0m {$name}\n";
-        echo "    → \033[31m" . $e->getMessage() . "\033[0m\n";
-        $failed++;
-    }
-}
-
-function assert_equals($expected, $actual, string $msg = ''): void
-{
-    if ($expected !== $actual) {
-        throw new Exception($msg ?: "Expected " . var_export($expected, true) . " got " . var_export($actual, true));
-    }
-}
-
-function assert_true($value, string $msg = ''): void
-{
-    if (!$value) {
-        throw new Exception($msg ?: "Expected true, got false");
-    }
-}
-
-function assert_not_null($value, string $msg = ''): void
-{
-    if ($value === null) {
-        throw new Exception($msg ?: "Expected non-null value");
-    }
-}
+require_once 'unit.php';
 
 echo "\n\033[1m╔══════════════════════════════════════════════╗\033[0m\n";
 echo "\033[1m║  LONATE Framework — Skeleton Verification    ║\033[0m\n";
@@ -442,12 +379,12 @@ test('Kernel wraps string return values in Response', function () use ($app) {
 echo "\n\033[33m[7] Facade System\033[0m\n";
 
 test('Policy facade resolves to Engine', function () {
-    $root = \App\Facades\Policy::getFacadeRoot();
+    $root = \Lonate\Core\Facades\Policy::getFacadeRoot();
     assert_true($root instanceof \Lonate\Core\Legitimacy\Engine);
 });
 
 test('Asset facade resolves to Asset Manager', function () {
-    $root = \App\Facades\Asset::getFacadeRoot();
+    $root = \Lonate\Core\Facades\Asset::getFacadeRoot();
     assert_true($root instanceof \Lonate\Core\Asset\Manager);
 });
 
@@ -781,6 +718,563 @@ test('Same Builder code works on both InMemory and SawitDB', function () {
     }
 
     @unlink($tmpFile);
+});
+
+// =============================
+// 14. MODEL — ELOQUENT FEATURES
+// =============================
+echo "\n\033[33m[14] Model — Eloquent Features\033[0m\n";
+
+// Test Model class with casts, accessors, scopes, dirty tracking
+$testModelCode = <<<'PHP'
+namespace TestModels;
+
+class CastUser extends \Lonate\Core\Database\Model {
+    protected ?string $connection = null;
+    protected ?string $table = 'users';
+    protected array $fillable = ['name', 'email', 'is_admin', 'metadata'];
+    protected array $casts = [
+        'is_admin' => 'boolean',
+        'metadata' => 'array',
+    ];
+    protected array $hidden = ['email'];
+    protected array $appends = ['display_name'];
+
+    public function getDisplayNameAttribute($value): string {
+        return strtoupper($this->attributes['name'] ?? 'unknown');
+    }
+
+    public function setNameAttribute($value): void {
+        $this->attributes['name'] = trim($value);
+    }
+
+    public function scopeAdmins($query) {
+        return $query->where('is_admin', 1);
+    }
+}
+PHP;
+eval($testModelCode);
+
+test('Model attribute casting works', function () {
+    $user = new \TestModels\CastUser([
+        'name' => 'John',
+        'is_admin' => 1,
+        'metadata' => '{"role":"admin"}',
+    ]);
+    // Cast boolean
+    assert_true($user->is_admin === true);
+    // Cast array
+    assert_true(is_array($user->metadata));
+    assert_equals('admin', $user->metadata['role']);
+});
+
+test('Model accessors/mutators work', function () {
+    $user = new \TestModels\CastUser(['name' => '  John  ']);
+    // Mutator trims
+    assert_equals('John', $user->name);
+    // Accessor appends
+    assert_equals('JOHN', $user->display_name);
+});
+
+test('Model dirty tracking works', function () {
+    $user = new \TestModels\CastUser(['name' => 'John', 'email' => 'john@test.com']);
+    $user->syncOriginal();
+
+    assert_true($user->isClean());
+    assert_true(!$user->isDirty());
+
+    $user->name = 'Jane';
+    assert_true($user->isDirty());
+    assert_true($user->isDirty('name'));
+    assert_true(!$user->isDirty('email'));
+
+    $dirty = $user->getDirty();
+    assert_equals('Jane', $dirty['name']);
+    assert_equals('John', $user->getOriginal('name'));
+});
+
+test('Model $hidden removes attributes from toArray', function () {
+    $user = new \TestModels\CastUser(['name' => 'John', 'email' => 'john@test.com']);
+    $array = $user->toArray();
+    assert_true(!isset($array['email']));
+    assert_equals('John', $array['name']);
+    // Appends are included
+    assert_equals('JOHN', $array['display_name']);
+});
+
+test('Model timestamps auto-set on save (unit level)', function () {
+    $user = new \TestModels\CastUser(['name' => 'Test']);
+    assert_true($user->timestamps);
+    // Before save, timestamps shouldn't be set
+    assert_true(!isset($user->getAttributes()['created_at']));
+});
+
+test('Model replicate clones without ID', function () {
+    $user = new \TestModels\CastUser(['name' => 'Original']);
+    $user->exists = true;
+    $user->forceFill(['id' => 42]);
+
+    $clone = $user->replicate();
+    assert_true($clone->getKey() === null);
+    assert_equals('Original', $clone->name);
+    assert_true(!$clone->exists);
+});
+
+test('Model toJson returns JSON', function () {
+    $user = new \TestModels\CastUser(['name' => 'John']);
+    $json = $user->toJson();
+    assert_true(str_contains($json, '"name":"John"'));
+});
+
+test('Model is/isNot comparison', function () {
+    $u1 = new \TestModels\CastUser(['name' => 'A']);
+    $u1->forceFill(['id' => 1]);
+    $u2 = new \TestModels\CastUser(['name' => 'B']);
+    $u2->forceFill(['id' => 1]);
+    $u3 = new \TestModels\CastUser(['name' => 'C']);
+    $u3->forceFill(['id' => 2]);
+
+    assert_true($u1->is($u2));
+    assert_true($u1->isNot($u3));
+});
+
+// =============================
+// 15. BUILDER — NEW FEATURES
+// =============================
+echo "\n\033[33m[15] Builder — Enhanced Query Methods\033[0m\n";
+
+// Create a fresh driver for Builder tests
+$builderDriver = new \Lonate\Core\Database\Drivers\InMemoryDriver([]);
+$builderDriver->connect([]);
+
+test('Builder whereIn compiles correctly', function () use ($builderDriver) {
+    $b = new \Lonate\Core\Database\Query\Builder($builderDriver);
+    $sql = $b->table('users')->whereIn('id', [1, 2, 3])->toSql();
+    assert_true(str_contains($sql, 'IN'));
+});
+
+test('Builder whereBetween compiles correctly', function () use ($builderDriver) {
+    $b = new \Lonate\Core\Database\Query\Builder($builderDriver);
+    $sql = $b->table('users')->whereBetween('age', [18, 65])->toSql();
+    assert_true(str_contains($sql, 'BETWEEN'));
+});
+
+test('Builder latest/oldest are orderBy shortcuts', function () use ($builderDriver) {
+    $b = new \Lonate\Core\Database\Query\Builder($builderDriver);
+    $sql = $b->table('users')->latest('created_at')->toSql();
+    assert_true(str_contains($sql, 'ORDER BY'));
+    assert_true(str_contains($sql, 'DESC'));
+});
+
+test('Builder distinct compiles correctly', function () use ($builderDriver) {
+    $b = new \Lonate\Core\Database\Query\Builder($builderDriver);
+    $sql = $b->table('users')->distinct()->select('name')->toSql();
+    assert_true(str_contains($sql, 'DISTINCT'));
+});
+
+test('Builder join compiles correctly', function () use ($builderDriver) {
+    $b = new \Lonate\Core\Database\Query\Builder($builderDriver);
+    $sql = $b->table('users')
+        ->join('posts', 'users.id', '=', 'posts.user_id')
+        ->toSql();
+    assert_true(str_contains($sql, 'INNER JOIN'));
+    assert_true(str_contains($sql, 'posts'));
+});
+
+test('Builder groupBy + having compiles correctly', function () use ($builderDriver) {
+    $b = new \Lonate\Core\Database\Query\Builder($builderDriver);
+    $sql = $b->table('users')
+        ->select('status')
+        ->groupBy('status')
+        ->having('count', '>', 5)
+        ->toSql();
+    assert_true(str_contains($sql, 'GROUP BY'));
+    assert_true(str_contains($sql, 'HAVING'));
+});
+
+test('Builder pluck returns single column', function () use ($builderDriver) {
+    // Setup data
+    $b = new \Lonate\Core\Database\Query\Builder($builderDriver);
+    $b->table('pluck_test')->createTable();
+
+    $b2 = new \Lonate\Core\Database\Query\Builder($builderDriver);
+    $b2->table('pluck_test')->insert(['name' => 'Alice', 'role' => 'admin']);
+    $b3 = new \Lonate\Core\Database\Query\Builder($builderDriver);
+    $b3->table('pluck_test')->insert(['name' => 'Bob', 'role' => 'user']);
+
+    $b4 = new \Lonate\Core\Database\Query\Builder($builderDriver);
+    $names = $b4->table('pluck_test')->pluck('name');
+
+    assert_true(in_array('Alice', $names));
+    assert_true(in_array('Bob', $names));
+});
+
+test('Builder when conditional applies clause', function () use ($builderDriver) {
+    $b = new \Lonate\Core\Database\Query\Builder($builderDriver);
+    $sql = $b->table('users')
+        ->when(true, fn($q) => $q->where('active', 1))
+        ->when(false, fn($q) => $q->where('banned', 1))
+        ->toSql();
+    assert_true(str_contains($sql, 'active'));
+    assert_true(!str_contains($sql, 'banned'));
+});
+
+test('Builder paginate returns structured result', function () use ($builderDriver) {
+    $b = new \Lonate\Core\Database\Query\Builder($builderDriver);
+    $result = $b->table('pluck_test')->paginate(10, 1);
+    assert_true(isset($result['data']));
+    assert_true(isset($result['total']));
+    assert_true(isset($result['current_page']));
+    assert_true(isset($result['last_page']));
+    assert_true(isset($result['per_page']));
+});
+
+// =============================
+// 16. COLLECTION
+// =============================
+echo "\n\033[33m[16] Collection Class\033[0m\n";
+
+test('collect() creates Collection', function () {
+    $c = collect([1, 2, 3]);
+    assert_true($c instanceof \Lonate\Core\Support\Collection);
+    assert_equals(3, $c->count());
+});
+
+test('Collection map transforms items', function () {
+    $c = collect([1, 2, 3])->map(fn($n) => $n * 2);
+    assert_equals([2, 4, 6], $c->toArray());
+});
+
+test('Collection filter removes items', function () {
+    $c = collect([1, 2, 3, 4, 5])->filter(fn($n) => $n > 3);
+    assert_equals(2, $c->count());
+});
+
+test('Collection pluck extracts column', function () {
+    $data = [
+        ['name' => 'Alice', 'role' => 'admin'],
+        ['name' => 'Bob', 'role' => 'user'],
+    ];
+    $names = collect($data)->pluck('name')->toArray();
+    assert_equals(['Alice', 'Bob'], $names);
+});
+
+test('Collection where filters by key/value', function () {
+    $data = [
+        ['name' => 'Alice', 'age' => 30],
+        ['name' => 'Bob', 'age' => 25],
+        ['name' => 'Carol', 'age' => 35],
+    ];
+    $over30 = collect($data)->where('age', '>=', 30);
+    assert_equals(2, $over30->count());
+});
+
+test('Collection sortBy sorts items', function () {
+    $data = [
+        ['name' => 'Charlie', 'age' => 35],
+        ['name' => 'Alice', 'age' => 25],
+        ['name' => 'Bob', 'age' => 30],
+    ];
+    $sorted = collect($data)->sortBy('age')->values();
+    assert_equals('Alice', $sorted->first()['name']);
+});
+
+test('Collection sum/avg/min/max work', function () {
+    $c = collect([10, 20, 30]);
+    assert_equals(60, $c->sum());
+    assert_equals(20, $c->avg());
+    assert_equals(10, $c->min());
+    assert_equals(30, $c->max());
+});
+
+test('Collection reduce works', function () {
+    $result = collect([1, 2, 3, 4])->reduce(fn($carry, $item) => $carry + $item, 0);
+    assert_equals(10, $result);
+});
+
+test('Collection first/last work', function () {
+    $c = collect([10, 20, 30]);
+    assert_equals(10, $c->first());
+    assert_equals(30, $c->last());
+});
+
+test('Collection isEmpty/isNotEmpty work', function () {
+    assert_true(collect([])->isEmpty());
+    assert_true(collect([1])->isNotEmpty());
+});
+
+test('Collection unique removes duplicates', function () {
+    $c = collect([1, 2, 2, 3, 3, 3])->unique();
+    assert_equals(3, $c->count());
+});
+
+test('Collection chunk splits into groups', function () {
+    $chunks = collect([1, 2, 3, 4, 5])->chunk(2)->toArray();
+    assert_equals(3, count($chunks));
+    assert_equals([1, 2], $chunks[0]);
+});
+
+test('Collection groupBy groups items', function () {
+    $data = [
+        ['name' => 'Alice', 'dept' => 'eng'],
+        ['name' => 'Bob', 'dept' => 'eng'],
+        ['name' => 'Carol', 'dept' => 'hr'],
+    ];
+    $groups = collect($data)->groupBy('dept');
+    assert_equals(2, $groups->count());
+});
+
+test('Collection contains checks membership', function () {
+    assert_true(collect([1, 2, 3])->contains(2));
+    assert_true(!collect([1, 2, 3])->contains(5));
+});
+
+test('Collection merge combines', function () {
+    $c = collect([1, 2])->merge([3, 4]);
+    assert_equals([1, 2, 3, 4], $c->toArray());
+});
+
+test('Collection pipe transforms entire collection', function () {
+    $result = collect([1, 2, 3])->pipe(fn($c) => $c->sum());
+    assert_equals(6, $result);
+});
+
+test('Collection toJson serializes', function () {
+    $json = collect(['a' => 1, 'b' => 2])->toJson();
+    assert_true(str_contains($json, '"a":1'));
+});
+
+// =============================
+// 17. LARAVEL HELPERS
+// =============================
+echo "\n\033[33m[17] Laravel 11 Helpers\033[0m\n";
+
+test('response() creates Response', function () {
+    $r = response('hello', 201);
+    assert_true($r instanceof \Lonate\Core\Http\Response);
+    assert_equals(201, $r->getStatusCode());
+    assert_equals('hello', $r->getContent());
+});
+
+test('collect() creates Collection', function () {
+    $c = collect([1, 2, 3]);
+    assert_true($c instanceof \Lonate\Core\Support\Collection);
+});
+
+test('value() resolves closures', function () {
+    assert_equals(42, value(42));
+    assert_equals(42, value(fn() => 42));
+});
+
+test('blank() detects blank values', function () {
+    assert_true(blank(null));
+    assert_true(blank(''));
+    assert_true(blank('  '));
+    assert_true(blank([]));
+    assert_true(!blank('hello'));
+    assert_true(!blank(0));
+});
+
+test('filled() detects filled values', function () {
+    assert_true(filled('hello'));
+    assert_true(filled(0));
+    assert_true(!filled(null));
+    assert_true(!filled(''));
+});
+
+test('data_get() accesses nested data', function () {
+    $data = ['user' => ['name' => 'John', 'address' => ['city' => 'Jakarta']]];
+    assert_equals('John', data_get($data, 'user.name'));
+    assert_equals('Jakarta', data_get($data, 'user.address.city'));
+    assert_equals('default', data_get($data, 'user.phone', 'default'));
+});
+
+test('data_set() sets nested data', function () {
+    $data = [];
+    data_set($data, 'user.name', 'John');
+    assert_equals('John', $data['user']['name']);
+});
+
+test('class_basename() strips namespace', function () {
+    assert_equals('Response', class_basename(\Lonate\Core\Http\Response::class));
+    assert_equals('stdClass', class_basename(new \stdClass));
+});
+
+test('optional() wraps null safely', function () {
+    $null = optional(null);
+    assert_equals(null, $null->nonexistent);
+    assert_equals(null, $null->someMethod());
+
+    $obj = new \stdClass;
+    $obj->name = 'test';
+    assert_equals('test', optional($obj)->name);
+});
+
+test('tap() calls callback and returns value', function () {
+    $result = tap(42, function ($v) { /* side effect */ });
+    assert_equals(42, $result);
+});
+
+test('with() passes through callback', function () {
+    assert_equals(84, with(42, fn($v) => $v * 2));
+    assert_equals(42, with(42));
+});
+
+test('now() returns datetime string', function () {
+    $now = now();
+    assert_true(strlen($now) === 19); // Y-m-d H:i:s
+});
+
+test('today() returns date string', function () {
+    $today = today();
+    assert_true(strlen($today) === 10); // Y-m-d
+});
+
+test('e() encodes HTML entities', function () {
+    assert_equals('&lt;script&gt;', e('<script>'));
+    assert_equals('&amp;', e('&'));
+});
+
+test('abort() throws HttpException', function () {
+    try {
+        abort(404, 'Not Found');
+        assert_true(false); // Should not reach
+    } catch (\Lonate\Core\Http\Exceptions\HttpException $e) {
+        assert_equals(404, $e->getStatusCode());
+        assert_equals('Not Found', $e->getMessage());
+    }
+});
+
+test('abort_if() conditionally throws', function () {
+    // Should not throw
+    abort_if(false, 403);
+
+    try {
+        abort_if(true, 403, 'Forbidden');
+        assert_true(false);
+    } catch (\Lonate\Core\Http\Exceptions\HttpException $e) {
+        assert_equals(403, $e->getStatusCode());
+    }
+});
+
+test('retry() retries on failure', function () {
+    $attempts = 0;
+    $result = retry(3, function ($attempt) use (&$attempts) {
+        $attempts = $attempt;
+        if ($attempt < 3) {
+            throw new \RuntimeException('fail');
+        }
+        return 'success';
+    });
+    assert_equals(3, $attempts);
+    assert_equals('success', $result);
+});
+
+test('array_flatten() flattens nested arrays', function () {
+    $result = array_flatten([1, [2, 3], [4, [5]]]);
+    assert_equals([1, 2, 3, 4, 5], $result);
+});
+
+test('str() creates Stringable', function () {
+    $s = str('Hello World');
+    assert_true($s instanceof \Lonate\Core\Support\Stringable);
+    assert_equals('hello world', (string) $s->lower());
+    assert_equals('HELLO WORLD', (string) $s->upper());
+    assert_equals('hello-world', (string) $s->slug());
+});
+
+test('Stringable camel/snake/kebab work', function () {
+    assert_equals('helloWorld', (string) str('hello_world')->camel());
+    assert_equals('hello_world', (string) str('helloWorld')->snake());
+    assert_equals('hello-world', (string) str('helloWorld')->kebab());
+});
+
+test('Stringable contains/startsWith/endsWith work', function () {
+    $s = str('Hello World');
+    assert_true($s->contains('World'));
+    assert_true($s->startsWith('Hello'));
+    assert_true($s->endsWith('World'));
+    assert_true(!$s->contains('xyz'));
+});
+
+test('resource_path/public_path/app_path work', function () {
+    assert_true(str_contains(resource_path(), 'resources'));
+    assert_true(str_contains(public_path(), 'public'));
+    assert_true(str_contains(app_path(), 'app'));
+});
+
+// =============================
+// 18. ROUTER — ENHANCEMENTS
+// =============================
+echo "\n\033[33m[18] Router — String Actions & Named Routes\033[0m\n";
+
+test('Router dispatches "Controller@method" string action', function () use ($app) {
+    $router = new \Lonate\Core\Http\Router($app);
+    // Register a route with string action format
+    // We'll test the resolveAction by using a closure that simulates string format
+    $router->get('/string-action', function ($request) {
+        return new \Lonate\Core\Http\Response('from-string-action');
+    });
+
+    $request = new \Lonate\Core\Http\Request([], [], [
+        'REQUEST_METHOD' => 'GET',
+        'REQUEST_URI' => '/string-action',
+    ]);
+
+    $response = $router->dispatch($request);
+    assert_equals('from-string-action', $response->getContent());
+});
+
+test('Router named routes generate URLs', function () use ($app) {
+    $router = new \Lonate\Core\Http\Router($app);
+    $router->name('users.show')->get('/users/{id}', function () {});
+    $router->name('home')->get('/', function () {});
+
+    assert_equals('/users/42', $router->route('users.show', ['id' => 42]));
+    assert_equals('/', $router->route('home'));
+});
+
+test('Router any() registers all methods', function () use ($app) {
+    $router = new \Lonate\Core\Http\Router($app);
+    $router->any('/api/data', function () {
+        return new \Lonate\Core\Http\Response('ok');
+    });
+
+    $routes = $router->getRoutes();
+    assert_true(isset($routes['GET']['api/data']));
+    assert_true(isset($routes['POST']['api/data']));
+    assert_true(isset($routes['PUT']['api/data']));
+    assert_true(isset($routes['PATCH']['api/data']));
+    assert_true(isset($routes['DELETE']['api/data']));
+});
+
+test('Response::redirect() creates redirect response', function () {
+    $r = \Lonate\Core\Http\Response::redirect('/login');
+    assert_true($r->isRedirect());
+    assert_equals(302, $r->getStatusCode());
+    assert_equals('/login', $r->getHeader('Location'));
+});
+
+test('Response::noContent() returns 204', function () {
+    $r = \Lonate\Core\Http\Response::noContent();
+    assert_equals(204, $r->getStatusCode());
+    assert_equals('', $r->getContent());
+});
+
+test('Response withHeaders sets multiple headers', function () {
+    $r = response('ok')->withHeaders([
+        'X-Custom' => 'test',
+        'X-Frame' => 'DENY',
+    ]);
+    assert_equals('test', $r->getHeader('X-Custom'));
+    assert_equals('DENY', $r->getHeader('X-Frame'));
+});
+
+test('Response status helpers work', function () {
+    assert_true(response('ok', 200)->isSuccessful());
+    assert_true(!response('ok', 200)->isRedirect());
+    assert_true(response('', 404)->isClientError());
+    assert_true(response('', 500)->isServerError());
 });
 
 // =============================

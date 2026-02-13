@@ -25,56 +25,43 @@ class Grammar
     //  WRAPPING (column/table quoting)
     // ═══════════════════════════════════
 
-    /**
-     * Wrap a table name for the SQL dialect.
-     */
     public function wrapTable(string $table): string
     {
         return $table;
     }
 
-    /**
-     * Wrap a column name for the SQL dialect.
-     */
     public function wrapColumn(string $column): string
     {
         if ($column === '*') return '*';
         return $column;
     }
 
-    /**
-     * Produce a parameter placeholder or an inline value.
-     * Base grammar uses `?` placeholder (PDO-style).
-     */
     public function parameter(mixed $value): string
     {
         return '?';
     }
 
-    /**
-     * Whether this grammar uses `?` parameter bindings.
-     */
     public function usesBindings(): bool
     {
         return $this->usesBindings;
     }
 
     // ═══════════════════════════════════
-    //  COMPILATION
+    //  SELECT COMPILATION
+    // ═══════════════════════════════════
+
+    public function compileSelect(string $table, array $columns, bool $distinct = false): string
+    {
+        $cols = implode(', ', array_map(fn($c) => $this->wrapColumn($c), $columns));
+        $distinctStr = $distinct ? 'DISTINCT ' : '';
+        return "SELECT {$distinctStr}{$cols} FROM {$this->wrapTable($table)}";
+    }
+
+    // ═══════════════════════════════════
+    //  INSERT / UPDATE / DELETE
     // ═══════════════════════════════════
 
     /**
-     * Compile a SELECT query.
-     */
-    public function compileSelect(string $table, array $columns): string
-    {
-        $cols = implode(', ', array_map(fn($c) => $this->wrapColumn($c), $columns));
-        return "SELECT {$cols} FROM {$this->wrapTable($table)}";
-    }
-
-    /**
-     * Compile an INSERT query.
-     *
      * @return array{sql: string, bindings: array}
      */
     public function compileInsert(string $table, array $values): array
@@ -94,8 +81,6 @@ class Grammar
     }
 
     /**
-     * Compile an UPDATE query's SET clause.
-     *
      * @return array{sql: string, bindings: array}
      */
     public function compileUpdate(string $table, array $values): array
@@ -104,7 +89,10 @@ class Grammar
         $bindings = [];
 
         foreach ($values as $key => $val) {
-            if ($this->usesBindings) {
+            // Raw expression support
+            if (is_object($val) && method_exists($val, '__toString')) {
+                $setParts[] = "{$this->wrapColumn($key)} = {$val}";
+            } elseif ($this->usesBindings) {
                 $setParts[] = "{$this->wrapColumn($key)} = ?";
                 $bindings[] = $val;
             } else {
@@ -117,17 +105,16 @@ class Grammar
         return ['sql' => $sql, 'bindings' => $bindings];
     }
 
-    /**
-     * Compile a DELETE query.
-     */
     public function compileDelete(string $table): string
     {
         return "DELETE FROM {$this->wrapTable($table)}";
     }
 
+    // ═══════════════════════════════════
+    //  WHERE COMPILATION
+    // ═══════════════════════════════════
+
     /**
-     * Compile WHERE clauses.
-     *
      * @return array{sql: string, bindings: array}
      */
     public function compileWheres(array $wheres): array
@@ -144,26 +131,129 @@ class Grammar
             $type = $where['type'] ?? 'basic';
             $col = $this->wrapColumn($where['column']);
 
-            if ($type === 'null') {
-                $clauses[] = $boolean . "{$col} IS NULL";
-            } elseif ($type === 'not_null') {
-                $clauses[] = $boolean . "{$col} IS NOT NULL";
-            } else {
-                if ($this->usesBindings) {
-                    $clauses[] = $boolean . "{$col} {$where['operator']} ?";
-                    $bindings[] = $where['value'];
-                } else {
-                    $clauses[] = $boolean . "{$col} {$where['operator']} {$this->parameter($where['value'])}";
-                }
+            switch ($type) {
+                case 'null':
+                    $clauses[] = $boolean . "{$col} IS NULL";
+                    break;
+
+                case 'not_null':
+                    $clauses[] = $boolean . "{$col} IS NOT NULL";
+                    break;
+
+                case 'in':
+                    $values = $where['values'];
+                    if ($this->usesBindings) {
+                        $placeholders = implode(', ', array_fill(0, count($values), '?'));
+                        $bindings = array_merge($bindings, $values);
+                    } else {
+                        $placeholders = implode(', ', array_map(fn($v) => $this->parameter($v), $values));
+                    }
+                    $clauses[] = $boolean . "{$col} IN ({$placeholders})";
+                    break;
+
+                case 'not_in':
+                    $values = $where['values'];
+                    if ($this->usesBindings) {
+                        $placeholders = implode(', ', array_fill(0, count($values), '?'));
+                        $bindings = array_merge($bindings, $values);
+                    } else {
+                        $placeholders = implode(', ', array_map(fn($v) => $this->parameter($v), $values));
+                    }
+                    $clauses[] = $boolean . "{$col} NOT IN ({$placeholders})";
+                    break;
+
+                case 'between':
+                    if ($this->usesBindings) {
+                        $clauses[] = $boolean . "{$col} BETWEEN ? AND ?";
+                        $bindings[] = $where['values'][0];
+                        $bindings[] = $where['values'][1];
+                    } else {
+                        $min = $this->parameter($where['values'][0]);
+                        $max = $this->parameter($where['values'][1]);
+                        $clauses[] = $boolean . "{$col} BETWEEN {$min} AND {$max}";
+                    }
+                    break;
+
+                case 'not_between':
+                    if ($this->usesBindings) {
+                        $clauses[] = $boolean . "{$col} NOT BETWEEN ? AND ?";
+                        $bindings[] = $where['values'][0];
+                        $bindings[] = $where['values'][1];
+                    } else {
+                        $min = $this->parameter($where['values'][0]);
+                        $max = $this->parameter($where['values'][1]);
+                        $clauses[] = $boolean . "{$col} NOT BETWEEN {$min} AND {$max}";
+                    }
+                    break;
+
+                default: // basic
+                    if ($this->usesBindings) {
+                        $clauses[] = $boolean . "{$col} {$where['operator']} ?";
+                        $bindings[] = $where['value'];
+                    } else {
+                        $clauses[] = $boolean . "{$col} {$where['operator']} {$this->parameter($where['value'])}";
+                    }
+                    break;
             }
         }
 
         return ['sql' => ' WHERE ' . implode('', $clauses), 'bindings' => $bindings];
     }
 
-    /**
-     * Compile ORDER BY clause.
-     */
+    // ═══════════════════════════════════
+    //  JOIN COMPILATION
+    // ═══════════════════════════════════
+
+    public function compileJoins(array $joins): string
+    {
+        if (empty($joins)) return '';
+
+        $parts = [];
+        foreach ($joins as $join) {
+            $type = $join['type'];
+            $table = $this->wrapTable($join['table']);
+
+            if ($type === 'CROSS') {
+                $parts[] = " CROSS JOIN {$table}";
+            } else {
+                $col1 = $this->wrapColumn($join['col1']);
+                $col2 = $this->wrapColumn($join['col2']);
+                $parts[] = " {$type} JOIN {$table} ON {$col1} {$join['operator']} {$col2}";
+            }
+        }
+
+        return implode('', $parts);
+    }
+
+    // ═══════════════════════════════════
+    //  GROUP BY / HAVING
+    // ═══════════════════════════════════
+
+    public function compileGroupBy(array $groups): string
+    {
+        if (empty($groups)) return '';
+        $cols = implode(', ', array_map(fn($c) => $this->wrapColumn($c), $groups));
+        return " GROUP BY {$cols}";
+    }
+
+    public function compileHaving(array $havings): string
+    {
+        if (empty($havings)) return '';
+
+        $parts = [];
+        foreach ($havings as $i => $having) {
+            $boolean = $i === 0 ? '' : ' AND ';
+            $col = $this->wrapColumn($having['column']);
+            $parts[] = $boolean . "{$col} {$having['operator']} {$having['value']}";
+        }
+
+        return ' HAVING ' . implode('', $parts);
+    }
+
+    // ═══════════════════════════════════
+    //  ORDER BY / LIMIT
+    // ═══════════════════════════════════
+
     public function compileOrderBy(array $orders): string
     {
         if (empty($orders)) return '';
@@ -176,9 +266,6 @@ class Grammar
         return ' ORDER BY ' . implode(', ', $parts);
     }
 
-    /**
-     * Compile LIMIT/OFFSET clause.
-     */
     public function compileLimit(?int $limit, ?int $offset): string
     {
         $sql = '';
@@ -191,34 +278,33 @@ class Grammar
         return $sql;
     }
 
-    /**
-     * Compile a CREATE TABLE statement.
-     */
+    // ═══════════════════════════════════
+    //  DDL
+    // ═══════════════════════════════════
+
     public function compileCreateTable(string $table): string
     {
         return "CREATE TABLE {$this->wrapTable($table)}";
     }
 
-    /**
-     * Compile a DROP TABLE statement.
-     */
     public function compileDropTable(string $table): string
     {
         return "DROP TABLE {$this->wrapTable($table)}";
     }
 
-    /**
-     * Compile a COUNT query.
-     */
+    // ═══════════════════════════════════
+    //  AGGREGATES
+    // ═══════════════════════════════════
+
     public function compileCount(string $table): string
     {
         return "SELECT COUNT(*) as count FROM {$this->wrapTable($table)}";
     }
 
-    /**
-     * Quote/escape a value for inline SQL.
-     * Used when usesBindings is false.
-     */
+    // ═══════════════════════════════════
+    //  VALUE QUOTING (for non-binding grammars)
+    // ═══════════════════════════════════
+
     public function quoteValue(mixed $value): string
     {
         if (is_null($value)) return 'NULL';
